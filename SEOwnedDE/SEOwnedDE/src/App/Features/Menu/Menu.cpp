@@ -1306,7 +1306,8 @@ void CMenu::MainWindow()
 
 				SelectSingle("Prediction Method", CFG::Aimbot_Projectile_Aim_Prediction_Method, {
 					{ "Full Acceleration", 0 },
-					{ "Current Velocity", 1 }
+					{ "Current Velocity", 1 },
+					{ "Norm Clamp", 2 }
 				});
 
 				SliderFloat("FOV", CFG::Aimbot_Projectile_FOV, 1.0f, 180.0f, 1.0f, "%.0f");

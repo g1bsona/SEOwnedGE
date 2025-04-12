@@ -196,19 +196,135 @@ void CMisc::AutoRocketJump(CUserCmd* cmd)
 
 void CMisc::AutoDisguise(CUserCmd* cmd)
 {
-	if (!CFG::Misc_Auto_Disguise || I::GlobalVars->tickcount % 20 != 0)
+	if (!CFG::Misc_Auto_Disguise)
 	{
 		return;
 	}
 
 	const auto local{H::Entities->GetLocal()};
 
-	if (!local || local->deadflag() || local->m_iClass() != TF_CLASS_SPY || local->InCond(TF_COND_DISGUISED) || local->InCond(TF_COND_DISGUISING))
+	if (!local || local->deadflag() || local->m_iClass() != TF_CLASS_SPY)
 	{
 		return;
 	}
 
-	I::EngineClient->ClientCmd_Unrestricted("lastdisguise");
+	// Don't do anything if we're already disguised or disguising
+	if (local->InCond(TF_COND_DISGUISED) || local->InCond(TF_COND_DISGUISING))
+	{
+		return;
+	}
+
+	// Check if we're using Your Eternal Reward - skip disguise logic if so
+	const auto weapon = H::Entities->GetWeapon();
+	if (weapon && weapon->m_iItemDefinitionIndex() == Spy_t_YourEternalReward)
+	{
+		return;
+	}
+
+	// Using our backstab victim information populated from game events
+	if (m_flLastBackstabTime > 0.0f && (I::GlobalVars->curtime - m_flLastBackstabTime) < 0.5f && m_pBackstabVictim)
+	{
+		// Clear the backstab data since we're handling it now
+		m_flLastBackstabTime = 0.0f;
+		
+		// Get victim's class
+		int victimClass = m_pBackstabVictim->m_iClass();
+		
+		// Skip Heavy, Soldier, and Demoman
+		if (victimClass == TF_CLASS_HEAVYWEAPONS || victimClass == TF_CLASS_SOLDIER || victimClass == TF_CLASS_DEMOMAN)
+		{
+			// Find nearest player that isn't Heavy/Soldier/Demoman
+			float closestDistance = FLT_MAX;
+			C_TFPlayer* closestPlayer = nullptr;
+			
+			for (const auto ent : H::Entities->GetGroup(EEntGroup::PLAYERS_ENEMIES))
+			{
+				if (!ent || ent == m_pBackstabVictim)
+					continue;
+				
+				auto player = ent->As<C_TFPlayer>();
+				if (!player || player->deadflag())
+					continue;
+					
+				int playerClass = player->m_iClass();
+				if (playerClass == TF_CLASS_HEAVYWEAPONS || playerClass == TF_CLASS_SOLDIER || playerClass == TF_CLASS_DEMOMAN)
+					continue;
+					
+				float distance = player->GetAbsOrigin().DistTo(local->GetAbsOrigin());
+				if (distance < closestDistance)
+				{
+					closestDistance = distance;
+					closestPlayer = player;
+				}
+			}
+			
+			if (closestPlayer)
+			{
+				// Disguise as the closest valid player
+				int disguiseClass = closestPlayer->m_iClass();
+				char command[32];
+				sprintf_s(command, "disguise %d -1", disguiseClass);
+				I::EngineClient->ClientCmd_Unrestricted(command);
+			}
+			else
+			{
+				// No valid player found, do random disguise
+				// Choose a random class that isn't Heavy/Soldier/Demoman
+				int validClasses[] = {TF_CLASS_SCOUT, TF_CLASS_PYRO, TF_CLASS_MEDIC, TF_CLASS_ENGINEER, TF_CLASS_SNIPER, TF_CLASS_SPY};
+				int randomIndex = rand() % 6;
+				int randomClass = validClasses[randomIndex];
+				
+				char command[32];
+				sprintf_s(command, "disguise %d -1", randomClass);
+				I::EngineClient->ClientCmd_Unrestricted(command);
+			}
+		}
+		else
+		{
+			// Victim is not Heavy/Soldier/Demoman, disguise as them
+			char command[32];
+			sprintf_s(command, "disguise %d -1", victimClass);
+			I::EngineClient->ClientCmd_Unrestricted(command);
+		}
+		
+		// Clear the victim pointer after using it
+		m_pBackstabVictim = nullptr;
+	}
+}
+
+// Process player_death event to track backstabs
+void CMisc::OnPlayerDeath(IGameEvent* pEvent)
+{
+	if (!CFG::Misc_Auto_Disguise)
+		return;
+		
+	const auto local = H::Entities->GetLocal();
+	if (!local || local->m_iClass() != TF_CLASS_SPY)
+		return;
+		
+	// Check if we're the attacker
+	const auto attacker = pEvent->GetInt("attacker");
+	const auto attackerEntIndex = I::EngineClient->GetPlayerForUserID(attacker);
+	
+	if (attackerEntIndex != local->entindex())
+		return;
+		
+	// Check if it was a backstab
+	const auto customkill = pEvent->GetInt("customkill");
+	if (customkill != TF_DMG_CUSTOM_BACKSTAB)
+		return;
+		
+	// Get the victim
+	const auto victim = pEvent->GetInt("userid");
+	const auto victimEntIndex = I::EngineClient->GetPlayerForUserID(victim);
+	auto victimEnt = I::ClientEntityList->GetClientEntity(victimEntIndex);
+	
+	if (!victimEnt)
+		return;
+		
+	// Store the victim and time for processing in our AutoDisguise function
+	m_pBackstabVictim = victimEnt->As<C_TFPlayer>();
+	m_flLastBackstabTime = I::GlobalVars->curtime;
 }
 
 void CMisc::AutoMedigun(CUserCmd* cmd)

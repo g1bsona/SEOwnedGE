@@ -131,14 +131,64 @@ void CMovementSimulation::SetupMoveData(C_TFPlayer* pPlayer, CMoveData* pMoveDat
 		pMoveData->m_flForwardMove = 450.0f;
 		pMoveData->m_flSideMove = 0.0f;
 	}
-
-	else
+	else if (CFG::Aimbot_Projectile_Aim_Prediction_Method == 1)
 	{
 		Vec3 vForward = {}, vRight = {};
 		Math::AngleVectors(pMoveData->m_vecViewAngles, &vForward, &vRight, nullptr);
 
 		pMoveData->m_flForwardMove = (pMoveData->m_vecVelocity.y - vRight.y / vRight.x * pMoveData->m_vecVelocity.x) / (vForward.y - vRight.y / vRight.x * vForward.x);
 		pMoveData->m_flSideMove = (pMoveData->m_vecVelocity.x - vForward.x * pMoveData->m_flForwardMove) / vRight.x;
+	}
+	else if (CFG::Aimbot_Projectile_Aim_Prediction_Method == 2) // Clamp and Normalize method
+	{
+		Vec3 vForward = {}, vRight = {};
+		Math::AngleVectors(pMoveData->m_vecViewAngles, &vForward, &vRight, nullptr);
+
+		// Prevent division by zero or very small values
+		const float denomForward = (vForward.y - vRight.y / vRight.x * vForward.x);
+		const float epsilon = 0.0001f;
+
+		if (fabsf(vRight.x) < epsilon || fabsf(denomForward) < epsilon)
+		{
+			// Fallback to a safer approach if we'd get unstable division
+			pMoveData->m_flForwardMove = 450.0f * (pMoveData->m_vecVelocity.Length2D() / pMoveData->m_flMaxSpeed);
+			pMoveData->m_flSideMove = 0.0f;
+		}
+		else
+		{
+			// Calculate forward and side move
+			pMoveData->m_flForwardMove = (pMoveData->m_vecVelocity.y - vRight.y / vRight.x * pMoveData->m_vecVelocity.x) / denomForward;
+			pMoveData->m_flSideMove = (pMoveData->m_vecVelocity.x - vForward.x * pMoveData->m_flForwardMove) / vRight.x;
+			
+			// Check for invalid values (NaN or infinite)
+			if (isnan(pMoveData->m_flForwardMove) || isinf(pMoveData->m_flForwardMove) ||
+				isnan(pMoveData->m_flSideMove) || isinf(pMoveData->m_flSideMove))
+			{
+				pMoveData->m_flForwardMove = 450.0f * (pMoveData->m_vecVelocity.Length2D() / pMoveData->m_flMaxSpeed);
+				pMoveData->m_flSideMove = 0.0f;
+			}
+		}
+
+		// Apply stricter clamping
+		const float flMoveScale = 450.0f;
+		pMoveData->m_flForwardMove = std::clamp(pMoveData->m_flForwardMove, -flMoveScale, flMoveScale);
+		pMoveData->m_flSideMove = std::clamp(pMoveData->m_flSideMove, -flMoveScale, flMoveScale);
+
+		// Normalize to ensure we never exceed maximum speed
+		float flTotalMove = sqrtf(pMoveData->m_flForwardMove * pMoveData->m_flForwardMove + 
+								  pMoveData->m_flSideMove * pMoveData->m_flSideMove);
+		
+		// Normalize more aggressively - scale down if we're at 90% or more of max
+		if (flTotalMove > (flMoveScale * 0.9f) && flTotalMove > 0.0f)
+		{
+			float flScale = (flMoveScale * 0.9f) / flTotalMove;
+			pMoveData->m_flForwardMove *= flScale;
+			pMoveData->m_flSideMove *= flScale;
+		}
+
+		// Final sanity check
+		pMoveData->m_flForwardMove = std::clamp(pMoveData->m_flForwardMove, -flMoveScale, flMoveScale);
+		pMoveData->m_flSideMove = std::clamp(pMoveData->m_flSideMove, -flMoveScale, flMoveScale);
 	}
 
 	const float flSpeed = pPlayer->m_vecVelocity().Length2D();
