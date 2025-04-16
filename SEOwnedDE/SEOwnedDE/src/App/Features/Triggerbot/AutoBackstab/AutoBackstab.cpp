@@ -100,6 +100,20 @@ void CAutoBackstab::Run(C_TFPlayer* pLocal, C_TFWeaponBase* pWeapon, CUserCmd* p
 			continue;
 		}
 
+		// Check for Razorback
+		if (CFG::Triggerbot_AutoBackstab_Ignore_Razorback)
+		{
+			// Iterate through player's weapons to find secondary slot (slot 1)
+			if (auto pSecondary = pPlayer->GetWeaponFromSlot(1))
+			{
+				// Check if it's a Razorback (item index 57)
+				if (pSecondary->m_iItemDefinitionIndex() == Sniper_s_TheRazorback)
+				{
+					continue;
+				}
+			}
+		}
+
 		// Knife if lethal
 		auto canKnife = false;
 		if (CFG::Triggerbot_AutoBackstab_Knife_If_Lethal)
@@ -158,6 +172,20 @@ void CAutoBackstab::Run(C_TFPlayer* pLocal, C_TFWeaponBase* pWeapon, CUserCmd* p
 			if (!record)
 			{
 				continue;
+			}
+
+			// Skip Razorback wearers when processing records
+			if (CFG::Triggerbot_AutoBackstab_Ignore_Razorback)
+			{
+				// Iterate through player's weapons to find secondary slot (slot 1)
+				if (auto pSecondary = pPlayer->GetWeaponFromSlot(1))
+				{
+					// Check if it's a Razorback (item index 57)
+					if (pSecondary->m_iItemDefinitionIndex() == Sniper_s_TheRazorback)
+					{
+						continue;
+					}
+				}
 			}
 
 			// Rage mode
