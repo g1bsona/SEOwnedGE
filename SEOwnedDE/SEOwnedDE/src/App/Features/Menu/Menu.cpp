@@ -1241,8 +1241,15 @@ void CMenu::MainWindow()
 				SelectSingle("Aim Type", CFG::Aimbot_Hitscan_Aim_Type, {
 					{ "Normal", 0 },
 					{ "Silent", 1 },
-					{ "Smooth", 2 }
+					{ "Smooth", 2 },
+					{ "Aim Assist", 3 }
 				});
+
+				if (CFG::Aimbot_Hitscan_Aim_Assist > 0.0f)
+				{
+					TextColor(IMGUI_WHITE);
+					Text("Aim Assist: Active");
+				}
 
 				SelectSingle("Hitbox", CFG::Aimbot_Hitscan_Hitbox, {
 					{ "Head", 0 },
@@ -1265,6 +1272,7 @@ void CMenu::MainWindow()
 
 				SliderFloat("FOV", CFG::Aimbot_Hitscan_FOV, 1.0f, 180.0f, 1.0f, "%.0f");
 				SliderFloat("Smoothing", CFG::Aimbot_Hitscan_Smoothing, 0.0f, 20.0f, 0.5f, "%.1f");
+				SliderFloat("Aim Assist", CFG::Aimbot_Hitscan_Aim_Assist, 1.0f, 100.0f, 1.0f, "%.0f%%");
 			}
 			GroupBoxEnd();
 

@@ -420,6 +420,12 @@ bool CAimbotHitscan::ShouldAim(const CUserCmd* pCmd, C_TFPlayer* pLocal, C_TFWea
 				return false;
 		}
 	}
+	
+	if (CFG::Aimbot_Hitscan_Aim_Type == 3)
+	{
+		// Aim assist is always active when a target is found
+		return true;
+	}
 
 	if (pWeapon->GetWeaponID() == TF_WEAPON_MINIGUN && pWeapon->As<C_TFMinigun>()->m_iWeaponState() == AC_STATE_DRYFIRE)
 		return false;
@@ -466,6 +472,43 @@ void CAimbotHitscan::Aim(CUserCmd* pCmd, C_TFPlayer* pLocal, const Vec3& vAngles
 
 			break;
 		}
+        
+        // Aim Assist
+        case 3:
+        {
+            Vec3 vDelta = vAngleTo - pCmd->viewangles;
+            Math::ClampAngles(vDelta);
+            
+            // Apply aim assist based on the assist percentage
+            if (vDelta.Length() > 0.0f && CFG::Aimbot_Hitscan_Aim_Assist > 0.0f)
+            {
+                // Scale the delta by aim assist strength (1% to 100%)
+                float flAssistStrength = CFG::Aimbot_Hitscan_Aim_Assist / 100.0f;
+                
+                // Apply a gentle non-linear curve to make lower values more subtle
+                flAssistStrength = powf(flAssistStrength, 1.5f);
+                
+                // Calculate the maximum adjustment per tick to prevent snapping
+                float flMaxAdjustment = 1.2f;
+                
+                // Scale the delta by aim assist strength
+                Vec3 vScaledDelta = vDelta * flAssistStrength;
+                
+                // Limit the maximum adjustment per tick to ensure gentle movement
+                for (int i = 0; i < 3; i++)
+                {
+                    if (fabsf(vScaledDelta[i]) > flMaxAdjustment)
+                    {
+                        vScaledDelta[i] = (vScaledDelta[i] > 0.0f ? 1.0f : -1.0f) * flMaxAdjustment;
+                    }
+                }
+                
+                // Apply the scaled delta
+                pCmd->viewangles += vScaledDelta;
+                Math::ClampAngles(pCmd->viewangles);
+            }
+            break;
+        }
 
 		default: break;
 	}
@@ -690,6 +733,16 @@ void CAimbotHitscan::Run(CUserCmd* pCmd, C_TFPlayer* pLocal, C_TFWeaponBase* pWe
 		G::nTargetIndexEarly = target.Entity->entindex();
 
 		const auto aimKeyDown = H::Input->IsDown(CFG::Aimbot_Key);
+		
+		// Always apply aim assist when that mode is selected, regardless of aimkey
+		bool applyAimAssist = (CFG::Aimbot_Hitscan_Aim_Type == 3);
+		
+		// For aim assist mode, don't require aimkey
+		if (applyAimAssist)
+		{
+			Aim(pCmd, pLocal, target.AngleTo);
+		}
+			
 		if (aimKeyDown || isFiring)
 		{
 			G::nTargetIndex = target.Entity->entindex();
@@ -728,7 +781,8 @@ void CAimbotHitscan::Run(CUserCmd* pCmd, C_TFPlayer* pLocal, C_TFWeaponBase* pWe
 			// Are we ready to aim?
 			if (ShouldAim(pCmd, pLocal, pWeapon) || bIsFiring)
 			{
-				if (aimKeyDown)
+				// Only apply non-assist aiming methods if aimkey is pressed and not aim assist mode
+				if (aimKeyDown && !applyAimAssist)
 				{
 					Aim(pCmd, pLocal, target.AngleTo);
 				}

@@ -148,6 +148,65 @@ void CMovementSimulation::SetupMoveData(C_TFPlayer* pPlayer, CMoveData* pMoveDat
 		const float denomForward = (vForward.y - vRight.y / vRight.x * vForward.x);
 		const float epsilon = 0.0001f;
 
+		// Improvement 1: Momentum Analysis - Track velocity changes over multiple ticks
+		Vec3 predictedAcceleration = {};
+		if (F::LagRecords->HasRecords(pPlayer))
+		{
+			const LagRecord_t* rec0 = F::LagRecords->GetRecord(pPlayer, 0);
+			const LagRecord_t* rec1 = F::LagRecords->GetRecord(pPlayer, 1);
+			const LagRecord_t* rec2 = F::LagRecords->GetRecord(pPlayer, 2);
+			
+			if (rec0 && rec1 && rec2)
+			{
+				// Calculate acceleration trend over last few ticks
+				Vec3 accel1 = rec0->Velocity - rec1->Velocity;
+				Vec3 accel2 = rec1->Velocity - rec2->Velocity;
+				
+				// Weight recent acceleration more heavily
+				predictedAcceleration = accel1 * 0.7f + accel2 * 0.3f;
+				
+				// Apply predicted acceleration to current velocity for forward projection
+				Vec3 projectedVelocity = pMoveData->m_vecVelocity + predictedAcceleration * 0.5f;
+				
+				// Only use projection if it's not too extreme
+				if (projectedVelocity.Length2D() < pMoveData->m_flMaxSpeed * 1.5f)
+				{
+					pMoveData->m_vecVelocity = projectedVelocity;
+				}
+			}
+		}
+
+		// Improvement 3: State-Based Prediction - Handle different player states differently
+		float movementMultiplier = 1.0f;
+		bool isSpecialState = false;
+		
+		// Handle ducking state
+		if (pPlayer->m_bDucked() || pPlayer->m_bDucking())
+		{
+			movementMultiplier *= 0.85f;
+			isSpecialState = true;
+		}
+		
+		// Handle jumping/airborne state
+		if (!(pPlayer->m_fFlags() & FL_ONGROUND))
+		{
+			movementMultiplier *= 1.15f; // Air movement can be less predictable
+			isSpecialState = true;
+		}
+		
+		// Handle specific TF2 conditions that affect movement
+		if (pPlayer->m_nPlayerCond() & TF_COND_SPEED_BOOST)
+		{
+			movementMultiplier *= 1.2f;
+			isSpecialState = true;
+		}
+		
+		if (pPlayer->m_nPlayerCond() & TF_COND_SLOWED)
+		{
+			movementMultiplier *= 0.75f;
+			isSpecialState = true;
+		}
+
 		if (fabsf(vRight.x) < epsilon || fabsf(denomForward) < epsilon)
 		{
 			// Fallback to a safer approach if we'd get unstable division
@@ -159,6 +218,13 @@ void CMovementSimulation::SetupMoveData(C_TFPlayer* pPlayer, CMoveData* pMoveDat
 			// Calculate forward and side move
 			pMoveData->m_flForwardMove = (pMoveData->m_vecVelocity.y - vRight.y / vRight.x * pMoveData->m_vecVelocity.x) / denomForward;
 			pMoveData->m_flSideMove = (pMoveData->m_vecVelocity.x - vForward.x * pMoveData->m_flForwardMove) / vRight.x;
+			
+			// Apply state-based multiplier
+			if (isSpecialState)
+			{
+				pMoveData->m_flForwardMove *= movementMultiplier;
+				pMoveData->m_flSideMove *= movementMultiplier;
+			}
 			
 			// Check for invalid values (NaN or infinite)
 			if (isnan(pMoveData->m_flForwardMove) || isinf(pMoveData->m_flForwardMove) ||
@@ -393,14 +459,39 @@ void CMovementSimulation::RunTick(float flTimeToTarget)
 		return;
 	}
 
+	// Improvement 10: Distance-Based Scaling
+	// Get the distance to target and use it to adjust prediction intensity
+	float distanceScale = 1.0f;
+	
+	// flTimeToTarget is directly related to distance - closer targets have lower time-to-target
+	if (flTimeToTarget > 0.0f)
+	{
+		// For closer targets (small time values), increase prediction intensity
+		// For distant targets (large time values), decrease prediction intensity
+		// Using a curve that gives higher intensity for closer targets
+		distanceScale = Math::RemapValClamped(flTimeToTarget, 0.0f, 2.0f, 1.3f, 0.7f);
+	}
+
 	if (CFG::Aimbot_Projectile_Ground_Strafe_Prediction && (m_PlayerDataBackup.m_fFlags & FL_ONGROUND) && (m_pPlayer->m_fFlags() & FL_ONGROUND))
 	{
-		m_MoveData.m_vecViewAngles.y += m_flYawTurnRate * Math::RemapValClamped(flTimeToTarget, 0.0f, 1.0f, 1.0f, 0.5f);
+		// Apply distance-based scaling to turn rate
+		m_MoveData.m_vecViewAngles.y += m_flYawTurnRate * Math::RemapValClamped(flTimeToTarget, 0.0f, 1.0f, 1.0f, 0.5f) * distanceScale;
 	}
 
 	if (CFG::Aimbot_Projectile_Air_Strafe_Prediction && !(m_PlayerDataBackup.m_fFlags & FL_ONGROUND) && !(m_pPlayer->m_fFlags() & FL_ONGROUND))
 	{
-		m_MoveData.m_vecViewAngles.y += m_flYawTurnRate;
+		// Apply distance-based scaling to turn rate
+		m_MoveData.m_vecViewAngles.y += m_flYawTurnRate * distanceScale;
+	}
+
+	// Apply distance-based scaling to all movement values
+	if (CFG::Aimbot_Projectile_Aim_Prediction_Method == 2 && distanceScale != 1.0f)
+	{
+		// Adjust forward and side movement based on distance
+		// For closer targets, make movements more extreme
+		// For distant targets, make movements less extreme
+		m_MoveData.m_flForwardMove *= distanceScale;
+		m_MoveData.m_flSideMove *= distanceScale;
 	}
 
 	m_bRunning = true;
