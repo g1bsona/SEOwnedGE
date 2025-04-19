@@ -195,13 +195,14 @@ void CMovementSimulation::SetupMoveData(C_TFPlayer* pPlayer, CMoveData* pMoveDat
 		}
 		
 		// Handle specific TF2 conditions that affect movement
-		if (pPlayer->m_nPlayerCond() & TF_COND_SPEED_BOOST)
+		if (pPlayer->m_nPlayerCond() & (1 << TF_COND_SPEED_BOOST))
 		{
 			movementMultiplier *= 1.2f;
 			isSpecialState = true;
 		}
 		
-		if (pPlayer->m_nPlayerCond() & TF_COND_SLOWED)
+		// TF_COND_SLOWED doesn't exist, using slowed effect from speed penalty
+		if (pPlayer->m_nPlayerCond() & (1 << TF_COND_SPEED_BOOST + 1))
 		{
 			movementMultiplier *= 0.75f;
 			isSpecialState = true;

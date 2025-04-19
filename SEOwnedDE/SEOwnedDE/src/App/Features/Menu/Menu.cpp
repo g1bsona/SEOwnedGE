@@ -1245,12 +1245,6 @@ void CMenu::MainWindow()
 					{ "Aim Assist", 3 }
 				});
 
-				if (CFG::Aimbot_Hitscan_Aim_Assist > 0.0f)
-				{
-					TextColor(IMGUI_WHITE);
-					Text("Aim Assist: Active");
-				}
-
 				SelectSingle("Hitbox", CFG::Aimbot_Hitscan_Hitbox, {
 					{ "Head", 0 },
 					{ "Body", 1 },
