@@ -1,0 +1,55 @@
+name: Build SEOwnedDE
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+    
+    - name: Install Windows SDK
+      uses: crazy-max/ghaction-chocolatey@v2
+      with:
+        args: install windows-sdk-10-version-2004-all
+    
+    - name: Build SEOwnedDE (x64 Release AVX2)
+      run: |
+        msbuild /m /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 /p:EnableEnhancedInstructionSet=AdvancedVectorExtensions2 /p:AVX2=true /p:WholeProgramOptimization=true SEOwnedDE/SEOwnedDE.sln
+    
+    - name: Collect DLL artifacts
+      run: |
+        mkdir -p artifacts
+        Get-ChildItem -Path . -Recurse -Filter *.dll | Where-Object { $_.DirectoryName -like "*Release*" -and $_.DirectoryName -like "*x64*" } | ForEach-Object { Copy-Item $_.FullName -Destination artifacts/ }
+        
+        # Create a readme with build info
+        $BuildDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        $CommitHash = git rev-parse --short HEAD
+        @"
+        # SEOwnedDE Build Information
+        
+        - **Build Date**: $BuildDate
+        - **Commit**: $CommitHash
+        - **Configuration**: x64 Release with AVX2
+        - **Compiler**: MSVC v143 (Visual Studio 2022)
+        
+        This build includes the enhanced movement prediction system with momentum analysis, state-based prediction, and distance-based scaling.
+        "@ | Out-File -FilePath artifacts/README.md -Encoding utf8
+    
+    - name: Upload DLLs
+      uses: actions/upload-artifact@v3
+      with:
+        name: SEOwnedDE-x64-Release-AVX2
+        path: artifacts/*
+        if-no-files-found: error 

@@ -435,3 +435,16 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/c++,visualstudio
+
+# Local artifacts folder
+/artifacts/
+
+# VS 2022 specific
+.vs/
+x64/
+Debug/
+Release/
+ipch/
+*.db
+*.opendb
+*.user
