@@ -575,3 +575,113 @@ void CMisc::MvmInstaRespawn()
 
 	I::EngineClient->ServerCmdKeyValues(kv);
 }
+
+void CMisc::RegionChanger()
+{
+	if (!CFG::Misc_Region_Changer)
+		return;
+
+	// Get the network channel info to check if we're connected
+	auto pNetChannel = I::EngineClient->GetNetChannelInfo();
+	if (!pNetChannel)
+		return;
+
+	// Check if matchmaking ConVar exists - if not, create it
+	static ConVar* mm_dedicated_search_maxping = I::CVar->FindVar("mm_dedicated_search_maxping");
+	static ConVar* tf_mm_strict = I::CVar->FindVar("tf_mm_strict");
+	static ConVar* cl_cmdrate = I::CVar->FindVar("cl_cmdrate");
+	static ConVar* cl_updaterate = I::CVar->FindVar("cl_updaterate");
+	static ConVar* rate = I::CVar->FindVar("rate");
+	
+	if (!mm_dedicated_search_maxping || !tf_mm_strict || !cl_cmdrate || !cl_updaterate || !rate)
+		return;
+
+	// Store default network settings to restore when region forcing is disabled
+	static int defaultMaxPing = mm_dedicated_search_maxping->GetInt();
+	static bool defaultStrict = tf_mm_strict->GetBool();
+	static int defaultCmdRate = cl_cmdrate->GetInt();
+	static int defaultUpdateRate = cl_updaterate->GetInt();
+	static int defaultRate = rate->GetInt();
+
+	// Store last selected region to detect changes
+	static int lastSelectedRegion = -1;
+	
+	// If region changer was disabled, restore default settings
+	if (lastSelectedRegion != -1 && CFG::Misc_Region_Selected == 0)
+	{
+		mm_dedicated_search_maxping->SetValue(defaultMaxPing);
+		tf_mm_strict->SetValue(defaultStrict);
+		cl_cmdrate->SetValue(defaultCmdRate);
+		cl_updaterate->SetValue(defaultUpdateRate);
+		rate->SetValue(defaultRate);
+		lastSelectedRegion = 0;
+		I::CVar->ConsoleColorPrintf({ 0, 255, 0, 255 }, "[Region Changer] Restored to default region\n");
+		return;
+	}
+
+	// If current region is the same as last region, don't change anything
+	if (lastSelectedRegion == CFG::Misc_Region_Selected)
+		return;
+
+	// Configure network settings based on selected region
+	switch (CFG::Misc_Region_Selected)
+	{
+	case 1: // EU (Europe)
+		mm_dedicated_search_maxping->SetValue(130);
+		tf_mm_strict->SetValue(true);
+		cl_cmdrate->SetValue(66);
+		cl_updaterate->SetValue(66);
+		rate->SetValue(60000);
+		I::CVar->ConsoleColorPrintf({ 0, 255, 0, 255 }, "[Region Changer] Region set to Europe\n");
+		break;
+
+	case 2: // NA (North America)
+		mm_dedicated_search_maxping->SetValue(100);
+		tf_mm_strict->SetValue(true);
+		cl_cmdrate->SetValue(66);
+		cl_updaterate->SetValue(66);
+		rate->SetValue(60000);
+		I::CVar->ConsoleColorPrintf({ 0, 255, 0, 255 }, "[Region Changer] Region set to North America\n");
+		break;
+
+	case 3: // Asia
+		mm_dedicated_search_maxping->SetValue(180);
+		tf_mm_strict->SetValue(true);
+		cl_cmdrate->SetValue(33);
+		cl_updaterate->SetValue(33);
+		rate->SetValue(35000);
+		I::CVar->ConsoleColorPrintf({ 0, 255, 0, 255 }, "[Region Changer] Region set to Asia\n");
+		break;
+
+	case 4: // Australia
+		mm_dedicated_search_maxping->SetValue(150);
+		tf_mm_strict->SetValue(true);
+		cl_cmdrate->SetValue(33);
+		cl_updaterate->SetValue(33);
+		rate->SetValue(35000);
+		I::CVar->ConsoleColorPrintf({ 0, 255, 0, 255 }, "[Region Changer] Region set to Australia\n");
+		break;
+
+	case 5: // South America
+		mm_dedicated_search_maxping->SetValue(170);
+		tf_mm_strict->SetValue(true);
+		cl_cmdrate->SetValue(33);
+		cl_updaterate->SetValue(33);
+		rate->SetValue(30000);
+		I::CVar->ConsoleColorPrintf({ 0, 255, 0, 255 }, "[Region Changer] Region set to South America\n");
+		break;
+
+	default:
+		// Default region - use system defaults
+		mm_dedicated_search_maxping->SetValue(defaultMaxPing);
+		tf_mm_strict->SetValue(defaultStrict);
+		cl_cmdrate->SetValue(defaultCmdRate);
+		cl_updaterate->SetValue(defaultUpdateRate);
+		rate->SetValue(defaultRate);
+		I::CVar->ConsoleColorPrintf({ 0, 255, 0, 255 }, "[Region Changer] Using default region\n");
+		break;
+	}
+
+	// Update last selected region
+	lastSelectedRegion = CFG::Misc_Region_Selected;
+}

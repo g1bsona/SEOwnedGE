@@ -2184,6 +2184,20 @@ void CMenu::MainWindow()
 						cmd->m_nFlags &= ~FCVAR_CHEAT;
 				}
 			}
+
+			GroupBoxStart("Region Changer", 160);
+			{
+				CheckBox("Enable Region Changer", CFG::Misc_Region_Changer);
+				SelectSingle("Region", CFG::Misc_Region_Selected, {
+					{ "Default", 0 },
+					{ "Europe (EU)", 1 },
+					{ "North America (NA)", 2 },
+					{ "Asia", 3 },
+					{ "Australia", 4 },
+					{ "South America", 5 }
+				});
+			}
+			GroupBoxEnd();
 		}
 		GroupBoxEnd();
 		

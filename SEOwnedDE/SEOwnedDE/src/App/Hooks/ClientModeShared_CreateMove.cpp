@@ -95,6 +95,7 @@ MAKE_HOOK(ClientModeShared_CreateMove, Memory::GetVFunc(I::ClientModeShared, 21)
 	F::Misc->AutoDisguise(pCmd);
 	F::Misc->MovementLock(pCmd);
 	F::Misc->MvmInstaRespawn();
+	F::Misc->RegionChanger();
 
 	F::EnginePrediction->Start(pCmd);
 	{

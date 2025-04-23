@@ -15,6 +15,7 @@ public:
 	void AutoMedigun(CUserCmd* cmd);
 	void MovementLock(CUserCmd* cmd);
 	void MvmInstaRespawn();
+	void RegionChanger();
 	
 	// Event handling for backstab detection
 	void OnPlayerDeath(IGameEvent* pEvent);

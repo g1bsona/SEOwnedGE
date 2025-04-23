@@ -457,6 +457,10 @@ namespace CFG
 	CFGVAR(Misc_Chat_Medieval, false);
 	CFGVAR(Misc_Chat_Owoify, false);
 
+	// Region Changer Config Variables
+	CFGVAR(Misc_Region_Changer, false);
+	CFGVAR(Misc_Region_Selected, 0); // 0 = Default, 1 = EU, 2 = NA, 3 = Asia, 4 = Australia, 5 = South America
+
 #pragma endregion
 
 #pragma region Colors
