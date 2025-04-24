@@ -423,8 +423,8 @@ bool CAimbotHitscan::ShouldAim(const CUserCmd* pCmd, C_TFPlayer* pLocal, C_TFWea
 	
 	if (CFG::Aimbot_Hitscan_Aim_Type == 3)
 	{
-		// Aim assist is always active when a target is found
-		return true;
+		// For aim assist, require aimkey to be pressed
+		return H::Input->IsDown(CFG::Aimbot_Key);
 	}
 
 	if (pWeapon->GetWeaponID() == TF_WEAPON_MINIGUN && pWeapon->As<C_TFMinigun>()->m_iWeaponState() == AC_STATE_DRYFIRE)
@@ -734,11 +734,8 @@ void CAimbotHitscan::Run(CUserCmd* pCmd, C_TFPlayer* pLocal, C_TFWeaponBase* pWe
 
 		const auto aimKeyDown = H::Input->IsDown(CFG::Aimbot_Key);
 		
-		// Always apply aim assist when that mode is selected, regardless of aimkey
-		bool applyAimAssist = (CFG::Aimbot_Hitscan_Aim_Type == 3);
-		
-		// For aim assist mode, don't require aimkey
-		if (applyAimAssist)
+		// Only apply aim assist when the aim key is down
+		if (CFG::Aimbot_Hitscan_Aim_Type == 3 && aimKeyDown)
 		{
 			Aim(pCmd, pLocal, target.AngleTo);
 		}
@@ -781,8 +778,8 @@ void CAimbotHitscan::Run(CUserCmd* pCmd, C_TFPlayer* pLocal, C_TFWeaponBase* pWe
 			// Are we ready to aim?
 			if (ShouldAim(pCmd, pLocal, pWeapon) || bIsFiring)
 			{
-				// Only apply non-assist aiming methods if aimkey is pressed and not aim assist mode
-				if (aimKeyDown && !applyAimAssist)
+				// Apply non-aim assist aiming methods if aimkey is pressed
+				if (aimKeyDown && CFG::Aimbot_Hitscan_Aim_Type != 3)
 				{
 					Aim(pCmd, pLocal, target.AngleTo);
 				}
