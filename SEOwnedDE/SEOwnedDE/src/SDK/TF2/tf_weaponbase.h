@@ -207,11 +207,11 @@ public:
 	}
 
 	int GetWeaponID() {
-		return reinterpret_cast<int(__fastcall *)(void *)>(Memory::GetVFunc(this, 382))(this);
+		return reinterpret_cast<int(__fastcall *)(void *)>(Memory::GetVFunc(this, 383))(this);
 	}
 
 	int GetDamageType() {
-		return reinterpret_cast<int(__fastcall *)(void *)>(Memory::GetVFunc(this, 383))(this);
+		return reinterpret_cast<int(__fastcall *)(void *)>(Memory::GetVFunc(this, 384))(this);
 	}
 
 	float GetSwingRange() {
@@ -231,7 +231,7 @@ public:
 		{
 			int &iFOV = pOwner->m_iFOV(), nFovBackup = iFOV;
 			iFOV = 70;
-			bOut = reinterpret_cast<bool(__fastcall *)(void *, bool, void *)>(Memory::GetVFunc(this, 426))(this, bIsHeadshot, nullptr);
+			bOut = reinterpret_cast<bool(__fastcall *)(void *, bool, void *)>(Memory::GetVFunc(this, 428))(this, bIsHeadshot, nullptr);
 			iFOV = nFovBackup;
 		}
 
@@ -278,7 +278,7 @@ public:
 	}
 	
 	bool IsEnergyWeapon() {
-		return reinterpret_cast<bool(__fastcall *)(void *)>(Memory::GetVFunc(this, 433))(this);
+		return reinterpret_cast<bool(__fastcall *)(void *)>(Memory::GetVFunc(this, 435))(this);
 	}
 
 	bool HasPrimaryAmmoForShot()
@@ -311,7 +311,7 @@ public:
 
 	void GetProjectileFireSetup(void *pPlayer, Vector vecOffset, Vector *vecSrc, QAngle *angForward, bool bHitTeammates = true, float flEndDist = 2000.0f) {
 		using fn = void(__fastcall *)(C_TFWeaponBase *, void *, Vector, Vector *, QAngle *, bool, float);
-		reinterpret_cast<fn>(Memory::GetVFunc(this, 400))(this, pPlayer, vecOffset, vecSrc, angForward, bHitTeammates, flEndDist);
+		reinterpret_cast<fn>(Memory::GetVFunc(this, 402))(this, pPlayer, vecOffset, vecSrc, angForward, bHitTeammates, flEndDist);
 	}
 
 	void GetSpreadAngles(Vec3 &out) {
@@ -323,7 +323,7 @@ public:
 	}
 
 	float ApplyFireDelay(float flDelay) {
-		return reinterpret_cast<float(__fastcall *)(void *, float)>(Memory::GetVFunc(this, 408))(this, flDelay);
+		return reinterpret_cast<float(__fastcall *)(void *, float)>(Memory::GetVFunc(this, 410))(this, flDelay);
 	}
 
 	bool CalcIsAttackCriticalHelperMelee() {
