@@ -424,6 +424,7 @@ namespace CFG
 	CFGVAR(Misc_Auto_Strafe, false);
 	CFGVAR(Misc_Auto_Strafe_Turn_Scale, 0.5f);
 	CFGVAR(Misc_Prevent_Server_Angle_Change, false);
+	CFGVAR(Misc_Auto_Accept_Item_Drops, true);
 	CFGVAR(Misc_Edge_Jump_Key, 0);
 	CFGVAR(Misc_Auto_Rocket_Jump_Key, 0);
 	CFGVAR(Misc_Auto_Air_Pogo_Key, 0);
@@ -450,6 +451,7 @@ namespace CFG
 	CFGVAR(Exploits_Crits_Force_Crit_Key, 0);
 	CFGVAR(Exploits_Crits_Force_Crit_Key_Melee, 0);
 	CFGVAR(Exploits_Crits_Skip_Random_Crits, true);
+	CFGVAR(Exploits_Crits_DrawIndicator, true);
 
 	CFGVAR(Exploits_SeedPred_Active, true);
 	CFGVAR(Exploits_SeedPred_DrawIndicator, true);
