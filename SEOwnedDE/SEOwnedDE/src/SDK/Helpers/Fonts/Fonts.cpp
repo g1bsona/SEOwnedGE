@@ -2,10 +2,10 @@
 
 void CFontManager::Reload()
 {
-	m_mapFonts[EFonts::Menu] = { "Verdana", 12, FONTFLAG_ANTIALIAS, 0 };
+	m_mapFonts[EFonts::Menu] = { "Verdana", 12, FONTFLAG_DROPSHADOW, 0 };
 	m_mapFonts[EFonts::ESP] = { "Verdana", 12, FONTFLAG_OUTLINE, 0 };
-	m_mapFonts[EFonts::ESP_CONDS] = { "Small Fonts", 9, FONTFLAG_OUTLINE, 0 };
-	m_mapFonts[EFonts::ESP_SMALL] = { "Small Fonts", 11, FONTFLAG_OUTLINE, 0 };
+	m_mapFonts[EFonts::ESP_CONDS] = { "Smallest Pixel-7", 11, FONTFLAG_OUTLINE, 0 };
+	m_mapFonts[EFonts::ESP_SMALL] = { "Verdana", 12, FONTFLAG_OUTLINE, 0 };
 
 	for (auto &v : m_mapFonts)
 	{
