@@ -1,4 +1,4 @@
-# SEOwnedDE
+# SEOwned Gibson Edition
 
 enhanced version of SEOwned with tsuki's improved movement prediction, extra visual stuff and other pasted shit who cares
 
