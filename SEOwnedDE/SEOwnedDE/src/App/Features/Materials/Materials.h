@@ -18,8 +18,9 @@ public:
 	IMaterial* m_pFlat = nullptr;
 	IMaterial* m_pShaded = nullptr;
 	IMaterial* m_pGlossy = nullptr;
-	IMaterial* m_pGlow = nullptr;
+	IMaterial* m_pFresnel = nullptr;
 	IMaterial* m_pPlastic = nullptr;
+	IMaterial* m_pRefract = nullptr;
 	IMaterialVar* m_pGlowEnvmapTint = nullptr;
 	IMaterialVar* m_pGlowSelfillumTint = nullptr;
 	IMaterial* m_pFlatNoInvis = nullptr;
@@ -48,8 +49,9 @@ public:
 		return pMaterial == m_pFlat
 			|| pMaterial == m_pShaded
 			|| pMaterial == m_pGlossy
-			|| pMaterial == m_pGlow
+			|| pMaterial == m_pFresnel
 			|| pMaterial == m_pPlastic
+			|| pMaterial == m_pRefract
 			|| pMaterial == m_pFlatNoInvis
 			|| pMaterial == m_pShadedNoInvis;
 	}

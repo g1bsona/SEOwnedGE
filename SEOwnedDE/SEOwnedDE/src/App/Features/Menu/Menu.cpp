@@ -1668,7 +1668,7 @@ void CMenu::MainWindow()
 					{ "Flat", 1 },
 					{ "Shaded", 2 },
 					{ "Glossy", 3 },
-					{ "Glow", 4 },
+					{ "Fresnel", 4 },
 					{ "Plastic", 5 }
 					});
 
@@ -1695,8 +1695,9 @@ void CMenu::MainWindow()
 					{ "Flat", 1 },
 					{ "Shaded", 2 },
 					{ "Glossy", 3 },
-					{ "Glow", 4 },
-					{ "Plastic", 5 }
+					{ "Fresnel", 4 },
+					{ "Plastic", 5 },
+					{ "Refract", 6 }
 				});
 
 				SliderFloat("Weapon Alpha", CFG::Materials_ViewModel_Weapon_Alpha, 0.0f, 1.0f, 0.1f, "%.1f");
@@ -1706,8 +1707,9 @@ void CMenu::MainWindow()
 					{ "Flat", 1 },
 					{ "Shaded", 2 },
 					{ "Glossy", 3 },
-					{ "Glow", 4 },
-					{ "Plastic", 5 }
+					{ "Fresnel", 4 },
+					{ "Plastic", 5 },
+					{ "Refract", 6 }
 				});
 			}
 			GroupBoxEnd();
@@ -1726,7 +1728,7 @@ void CMenu::MainWindow()
 					{ "Flat", 1 },
 					{ "Shaded", 2 },
 					{ "Glossy", 3 },
-					{ "Glow", 4 },
+					{ "Fresnel", 4 },
 					{ "Plastic", 5 }
 					});
 
@@ -1761,7 +1763,7 @@ void CMenu::MainWindow()
 					{ "Flat", 1 },
 					{ "Shaded", 2 },
 					{ "Glossy", 3 },
-					{ "Glow", 4 },
+					{ "Fresnel", 4 },
 					{ "Plastic", 5 }
 					});
 
@@ -2159,6 +2161,7 @@ void CMenu::MainWindow()
 			CheckBox("Equip Region Unlock", CFG::Misc_Equip_Region_Unlock);
 			CheckBox("Fast Stop", CFG::Misc_Fast_Stop);
 			CheckBox("Anti Server Angle Change", CFG::Misc_Prevent_Server_Angle_Change);
+			CheckBox("Auto Accept Item Drops", CFG::Misc_Auto_Accept_Item_Drops);
 
 			if (Button("Unlock CVars"))
 			{
@@ -2598,6 +2601,8 @@ void CMenu::Indicators()
 	int y = H::Draw->GetScreenH() - ((numitems * tall) + 2);
 	int offset = 0;
 	Color_t clr = { 200, 200, 200, 255 };
+
+	H::Draw->String(H::Fonts->Get(EFonts::ESP_SMALL), x, y - tall, Color_t{ 99, 182, 255, 255 }, POS_DEFAULT, "seowned gibson edition lol");
 
 	H::Draw->String(H::Fonts->Get(EFonts::ESP_SMALL), x, y + (offset++ * tall), clr, POS_DEFAULT, "fps %d", static_cast<int>(1.0f / I::GlobalVars->absoluteframetime));
 

@@ -36,8 +36,9 @@ MAKE_HOOK(IVModelRender_DrawModelExecute, Memory::GetVFunc(I::ModelRender, 19), 
 								case 1: return F::Materials->m_pFlat;
 								case 2: return F::Materials->m_pShaded;
 								case 3: return F::Materials->m_pGlossy;
-								case 4: return F::Materials->m_pGlow;
+								case 4: return F::Materials->m_pFresnel;
 								case 5: return F::Materials->m_pPlastic;
+								case 6: return F::Materials->m_pRefract;
 								default: return nullptr;
 							}
 						};
@@ -58,7 +59,7 @@ MAKE_HOOK(IVModelRender_DrawModelExecute, Memory::GetVFunc(I::ModelRender, 19), 
 						{
 							const auto& base = CFG::Color_Hands;
 
-							if (mat != F::Materials->m_pGlow)
+							if (mat != F::Materials->m_pFresnel)
 							{
 								I::RenderView->SetColorModulation(base);
 							}
@@ -163,8 +164,9 @@ MAKE_HOOK(CBaseAnimating_DrawModel, Signatures::CBaseAnimating_DrawModel.Get(), 
 						case 1: return F::Materials->m_pFlat;
 						case 2: return F::Materials->m_pShaded;
 						case 3: return F::Materials->m_pGlossy;
-						case 4: return F::Materials->m_pGlow;
+						case 4: return F::Materials->m_pFresnel;
 						case 5: return F::Materials->m_pPlastic;
+						case 6: return F::Materials->m_pRefract;
 						default: return nullptr;
 					}
 				};
@@ -185,7 +187,7 @@ MAKE_HOOK(CBaseAnimating_DrawModel, Signatures::CBaseAnimating_DrawModel.Get(), 
 				{
 					const auto& base = CFG::Color_Weapon;
 
-					if (mat != F::Materials->m_pGlow)
+					if (mat != F::Materials->m_pFresnel)
 					{
 						I::RenderView->SetColorModulation(base);
 					}

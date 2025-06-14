@@ -68,7 +68,7 @@ void CApp::Start()
 		msgColor = { 28, 179, 210, 255 };
 	}
 
-	I::CVar->ConsoleColorPrintf(msgColor, "SEOwnedDE Loaded!\n");
+	I::CVar->ConsoleColorPrintf(msgColor, "faggot shit loaded\n");
 }
 
 void CApp::Loop()
@@ -110,5 +110,5 @@ void CApp::Shutdown()
 		}
 	}
 	
-	I::CVar->ConsoleColorPrintf({ 255, 70, 70, 255 }, "SEOwnedDE Unloaded!\n");
+	I::CVar->ConsoleColorPrintf({ 255, 70, 70, 255 }, "faggot shit unloaded\n");
 }

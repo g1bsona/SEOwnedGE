@@ -173,19 +173,19 @@ void CMaterials::Initialize()
 		m_pGlossy = I::MaterialSystem->CreateMaterial("seo_material_glossy", kv);
 	}
 
-	if (!m_pGlow)
+	if (!m_pFresnel)
 	{
 		auto* kv = new KeyValues("VertexLitGeneric");
 		kv->SetString("$basetexture", "vgui/white_additive");
 		kv->SetString("$bumpmap", "models/player/shared/shared_normal");
-		kv->SetString("$envmap", "effects/saxxy_gold");
-		//kv->SetString("$envmap", "skybox/sky_dustbowl_01");
+		//kv->SetString("$envmap", "effects/saxxy_gold"); <--- why???
+		kv->SetString("$envmap", "skybox/sky_dustbowl_01");
 		kv->SetString("$envmapfresnel", "1");
 		kv->SetString("$phong", "1");
 		kv->SetString("$phongfresnelranges", mat_hdr_level->GetInt() > 1 ? "[0 0.05 0.1]" : "[0 1 2]");
 		kv->SetString("$selfillum", "1");
 		kv->SetString("$selfillumFresnel", "1");
-		kv->SetString("$selfillumFresnelMinMaxExp", "[0.4999 0.5 0]");
+		kv->SetString("$selfillumFresnelMinMaxExp", "[0.5 0.5 0]");
 		kv->SetString("$envmaptint", "[0 0 0]");
 		kv->SetString("$selfillumtint", "[0.03 0.03 0.03]");
 		kv->SetString("$cloakPassEnabled", "1");
@@ -193,9 +193,9 @@ void CMaterials::Initialize()
 		kv->SetString("$model", "1");
 		if (const auto proxies = kv->FindKey("Proxies", true)) { proxies->FindKey("invis", true); }
 
-		m_pGlow = I::MaterialSystem->CreateMaterial("seo_material_glow", kv);
-		m_pGlowEnvmapTint = m_pGlow->FindVar("$envmaptint", nullptr);
-		m_pGlowSelfillumTint = m_pGlow->FindVar("$selfillumtint", nullptr);
+		m_pFresnel = I::MaterialSystem->CreateMaterial("seo_material_glow", kv);
+		m_pGlowEnvmapTint = m_pFresnel->FindVar("$envmaptint", nullptr);
+		m_pGlowSelfillumTint = m_pFresnel->FindVar("$selfillumtint", nullptr);
 	}
 
 	if (!m_pPlastic)
@@ -215,6 +215,21 @@ void CMaterials::Initialize()
 		if (const auto proxies = kv->FindKey("Proxies", true)) { proxies->FindKey("invis", true); }
 
 		m_pPlastic = I::MaterialSystem->CreateMaterial("seo_material_plastic", kv);
+	}
+
+	if (!m_pRefract)
+	{
+		auto* kv = new KeyValues("Refract");
+		kv->SetString("$normalmap", "dev/bump_normal");
+		kv->SetString("$bluramount", "2");
+		kv->SetString("$refractamount", "0.8");
+		kv->SetString("bumpframe", "0");
+		kv->SetString("$vertexcolor", "1");
+		kv->SetString("$vertexalpha", "1");
+		kv->SetString("$translucent", "1");
+		kv->SetString("$model", "1");
+
+		m_pRefract = I::MaterialSystem->CreateMaterial("seo_material_refract", kv);
 	}
 
 	if (!m_pFlatNoInvis)
@@ -428,7 +443,7 @@ void CMaterials::Run()
 		case 1: return m_pFlat;
 		case 2: return m_pShaded;
 		case 3: return m_pGlossy;
-		case 4: return m_pGlow;
+		case 4: return m_pFresnel;
 		case 5: return m_pPlastic;
 		default: return nullptr;
 		}
@@ -496,10 +511,10 @@ void CMaterials::Run()
 
 			const auto entColor = F::VisualUtils->GetEntityColor(pLocal, pPlayer);
 
-			if (pMaterial && pMaterial != m_pGlow)
+			if (pMaterial && pMaterial != m_pFresnel)
 				I::RenderView->SetColorModulation(entColor);
 
-			if (pMaterial == m_pGlow)
+			if (pMaterial == m_pFresnel)
 				m_pGlowEnvmapTint->SetVecValue(ColorUtils::ToFloat(entColor.r), ColorUtils::ToFloat(entColor.g), ColorUtils::ToFloat(entColor.b));
 
 			DrawEntity(pPlayer);
@@ -583,10 +598,10 @@ void CMaterials::Run()
 
 			const auto entColor = F::VisualUtils->GetEntityColor(pLocal, pBuilding);
 
-			if (pMaterial && pMaterial != m_pGlow)
+			if (pMaterial && pMaterial != m_pFresnel)
 				I::RenderView->SetColorModulation(entColor);
 
-			if (pMaterial == m_pGlow)
+			if (pMaterial == m_pFresnel)
 				m_pGlowEnvmapTint->SetVecValue(ColorUtils::ToFloat(entColor.r), ColorUtils::ToFloat(entColor.g), ColorUtils::ToFloat(entColor.b));
 
 			DrawEntity(pBuilding);
@@ -626,10 +641,10 @@ void CMaterials::Run()
 				if (!pEntity || !F::VisualUtils->IsOnScreen(pLocal, pEntity))
 					continue;
 
-				if (pMaterial && pMaterial != m_pGlow)
+				if (pMaterial && pMaterial != m_pFresnel)
 					I::RenderView->SetColorModulation(color);
 
-				if (pMaterial == m_pGlow)
+				if (pMaterial == m_pFresnel)
 					m_pGlowEnvmapTint->SetVecValue(ColorUtils::ToFloat(color.r), ColorUtils::ToFloat(color.g), ColorUtils::ToFloat(color.b));
 
 				DrawEntity(pEntity);
@@ -645,10 +660,10 @@ void CMaterials::Run()
 				if (!pEntity || !F::VisualUtils->IsOnScreen(pLocal, pEntity))
 					continue;
 
-				if (pMaterial && pMaterial != m_pGlow)
+				if (pMaterial && pMaterial != m_pFresnel)
 					I::RenderView->SetColorModulation(color);
 
-				if (pMaterial == m_pGlow)
+				if (pMaterial == m_pFresnel)
 					m_pGlowEnvmapTint->SetVecValue(ColorUtils::ToFloat(color.r), ColorUtils::ToFloat(color.g), ColorUtils::ToFloat(color.b));
 
 				DrawEntity(pEntity);
@@ -664,10 +679,10 @@ void CMaterials::Run()
 				if (!pEntity || !pEntity->ShouldDraw() || !F::VisualUtils->IsOnScreen(pLocal, pEntity))
 					continue;
 
-				if (pMaterial && pMaterial != m_pGlow)
+				if (pMaterial && pMaterial != m_pFresnel)
 					I::RenderView->SetColorModulation(color);
 
-				if (pMaterial == m_pGlow)
+				if (pMaterial == m_pFresnel)
 					m_pGlowEnvmapTint->SetVecValue(ColorUtils::ToFloat(color.r), ColorUtils::ToFloat(color.g), ColorUtils::ToFloat(color.b));
 
 				DrawEntity(pEntity);
@@ -683,10 +698,10 @@ void CMaterials::Run()
 				if (!pEntity || !pEntity->ShouldDraw() || !F::VisualUtils->IsOnScreen(pLocal, pEntity))
 					continue;
 
-				if (pMaterial && pMaterial != m_pGlow)
+				if (pMaterial && pMaterial != m_pFresnel)
 					I::RenderView->SetColorModulation(color);
 
-				if (pMaterial == m_pGlow)
+				if (pMaterial == m_pFresnel)
 					m_pGlowEnvmapTint->SetVecValue(ColorUtils::ToFloat(color.r), ColorUtils::ToFloat(color.g), ColorUtils::ToFloat(color.b));
 
 				DrawEntity(pEntity);
@@ -723,10 +738,10 @@ void CMaterials::Run()
 
 				const auto color = F::VisualUtils->GetEntityColor(pLocal, pEntity);
 
-				if (pMaterial && pMaterial != m_pGlow)
+				if (pMaterial && pMaterial != m_pFresnel)
 					I::RenderView->SetColorModulation(color);
 
-				if (pMaterial == m_pGlow)
+				if (pMaterial == m_pFresnel)
 					m_pGlowEnvmapTint->SetVecValue(ColorUtils::ToFloat(color.r), ColorUtils::ToFloat(color.g), ColorUtils::ToFloat(color.b));
 
 				DrawEntity(pEntity);
@@ -769,11 +784,11 @@ void CMaterials::CleanUp()
 		m_pGlossy = nullptr;
 	}
 
-	if (m_pGlow)
+	if (m_pFresnel)
 	{
-		m_pGlow->DecrementReferenceCount();
-		m_pGlow->DeleteIfUnreferenced();
-		m_pGlow = nullptr;
+		m_pFresnel->DecrementReferenceCount();
+		m_pFresnel->DeleteIfUnreferenced();
+		m_pFresnel = nullptr;
 		m_pGlowEnvmapTint = nullptr;
 		m_pGlowSelfillumTint = nullptr;
 	}
