@@ -15,3 +15,7 @@ This repository is configured with GitHub Actions to automatically build the pro
 You can download the latest automated build from the "Actions" tab above. Look for the most recent successful workflow run and download the "SEOwnedDE-x64-Release-AVX2" artifact. 
 
 Based on [SEOwnedDE public](https://github.com/spook953/SEOwnedDE-public), and LNX's fork with various fixes and improvements. 
+
+## Contributors
+
+- [Andrea](https://github.com/hellidox)
