@@ -1,6 +1,6 @@
 # SEOwnedDE
 
-Enhanced version of SEOwned with improved movement prediction.
+enhanced version of SEOwned with tsuki's improved movement prediction, extra visual stuff and other pasted shit who cares
 
 ## Automated Builds
 
